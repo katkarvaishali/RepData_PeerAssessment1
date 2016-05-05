@@ -1,19 +1,16 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 #### Set Working directory
 
-```{r}
+
+```r
 #setwd("G:/RWrokingDirectory")
 ```
 
 #### Check for the folder "data" exists in the working directory.
 
-```{r}
+
+```r
 if (!file.exists("data")){
     dir.create("data")
 }
@@ -21,17 +18,25 @@ if (!file.exists("data")){
 
 #### Getting the data from internet and unzip it.
 
-```{r}
+
+```r
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", "data/repdata data activity")
 filename <- unzip("data/repdata data activity")
-
 ```
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 checkActivity <- read.csv(filename, stringsAsFactors = FALSE)
 str(checkActivity)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : chr  "2012-10-01" "2012-10-01" "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 Here from above data, below observations are found -  
@@ -40,47 +45,85 @@ Here from above data, below observations are found -
 
 Hence we will convert the format to date for column date.
 
-```{r}
+
+```r
 checkActivity$date <- as.Date(checkActivity$date)
 str(checkActivity)
 ```
 
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
+
 And count for null values in column steps
 
-```{r}
+
+```r
 sum(is.na(checkActivity$steps))
+```
+
+```
+## [1] 2304
 ```
 
 
 As we found N/A marked rows are 2304, we will skip that data for next two questions analysis.
 
-```{r}
+
+```r
 activityremoveNA <- checkActivity[which(!is.na(checkActivity$steps)), ]
 head(activityremoveNA)
 ```
 
+```
+##     steps       date interval
+## 289     0 2012-10-02        0
+## 290     0 2012-10-02        5
+## 291     0 2012-10-02       10
+## 292     0 2012-10-02       15
+## 293     0 2012-10-02       20
+## 294     0 2012-10-02       25
+```
+
 Please find below graph for above data.
 
-```{r}
+
+```r
 library(ggplot2)
 qplot(date, steps, data = activityremoveNA)
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)
 
 ## What is mean total number of steps taken per day?
 
 To calculate total number of steps taken per day, we need to take sum of all steps date wise.
 
-```{r}
+
+```r
 stepsPerDay <- tapply(activityremoveNA$steps, activityremoveNA$date, sum)
 head(stepsPerDay)
+```
+
+```
+## 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06 2012-10-07 
+##        126      11352      12116      13294      15420      11015
 ```
 
 Here it is found that there is only data present for month of October'2012 and November'2012
 
 Now we have received data for per day, so we will calculate mean for total number of steps taken per day.
 
-```{r}
+
+```r
 mean(stepsPerDay)
+```
+
+```
+## [1] 10766.19
 ```
 
 ## What is the average daily activity pattern?
@@ -89,12 +132,31 @@ To get daily average activity pattern, we have to aggregate dataset by particula
 
 Consider below values like 500 = 5:00, 1000 = 10:00 and so on. Hence complete 24 hours from midnight to next day midnight ending hour.
 
-```{r}
+
+```r
 dailyavg <- tapply(activityremoveNA$steps, activityremoveNA$interval, mean)
 head(dailyavg)
+```
+
+```
+##         0         5        10        15        20        25 
+## 1.7169811 0.3396226 0.1320755 0.1509434 0.0754717 2.0943396
+```
+
+```r
 plot(y = dailyavg, x = names(dailyavg), type = "l", xlab = "5 Minute Interval", 
     main = "Daily Activity Pattern", ylab =  "Average Number of Steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)
+
+```r
 dailyavg[dailyavg == max(dailyavg)]
+```
+
+```
+##      835 
+## 206.1698
 ```
 
 Here It is found that the daily average value is 835 for steps 206.1698.
@@ -103,16 +165,26 @@ Here It is found that the daily average value is 835 for steps 206.1698.
 
 As we have seen above there are 2304 values missing which are coded as "N/A".  Now check other two columns missing data if any.
 
-```{r}
+
+```r
 sum(is.na(checkActivity))
+```
+
+```
+## [1] 2304
 ```
 
 Both counts are matching which is taken for missing steps and overall missing values in the dataset.
 
 Calculate total percentage of missing values as compared to total observations.
 
-```{r}
+
+```r
 (sum(is.na(checkActivity))/nrow(checkActivity))*100
+```
+
+```
+## [1] 13.11475
 ```
 
 Hence only 13.11 % data is missing.
@@ -120,27 +192,34 @@ Hence only 13.11 % data is missing.
 As there is a 5 minute interval, below command will generate data along with filled missing data with mean valu
 es.
 
-```{r}
+
+```r
 newData <- checkActivity
 newData[which(is.na(newData$steps)),1] <- dailyavg[as.character(newData[which(is.na(newData$steps)),3])]
-
 ```
 
 Now check for missing values present in the dataset.
 
-```{r}
+
+```r
 sum(is.na(newData))
+```
+
+```
+## [1] 0
 ```
 
 Here found there are no missing values in the dataset.
 
 Below graphs displays the difference between missing values and the values replaced with mean values. 
 
-```{r}
+
+```r
 valueperday <-tapply(newData$steps, newData$date, sum)
 ```
 
-```{r}
+
+```r
 par(mfrow=c(1,2))
 hist(stepsPerDay,10, main = "Total no. of steps per day", xlab = "Steps", ylab = "Intervals", ylim =c(0, 25))
 abline(v = median(stepsPerDay), col = 4, lwd = 4)
@@ -151,16 +230,28 @@ hist(valueperday,10, main = "Total no. of steps per day
 abline(v = median(valueperday), col = 4, lwd = 4)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png)
+
 
 The impact of inputting missing data is minimal, as only the median seems to be changing but by just over one step.
 
-```{r}
+
+```r
 mean(valueperday)-mean(stepsPerDay)
 ```
 
+```
+## [1] 0
+```
 
-```{r}
+
+
+```r
 median(valueperday)-median(stepsPerDay)
+```
+
+```
+## [1] 1.188679
 ```
 
 
@@ -168,13 +259,22 @@ median(valueperday)-median(stepsPerDay)
 
 Check date column is in date format.
 
-```{r}
+
+```r
 str(newData)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 For calculating weekdays and weekends data, we need to factor the data accordingly.
 
-```{r}
+
+```r
 newData$wd <- weekdays(newData$date)
 
 newData[newData$wd == "Sunday" | newData$wd == "Saturday", 5 ] <- "weekend"
@@ -187,7 +287,8 @@ newData[!(newData$wd == "Sunday" | newData$wd == "Saturday"), 5] <- "weekday"
 To get the difference between weekdays and weekends, the aggregation of steps per 5 minutes interval need to be derived.
 
 
-```{r}
+
+```r
 new_weekend <- subset(newData, newData$V5 == "weekend")
 #new_weekend
 
@@ -197,7 +298,8 @@ new_weekday <- subset(newData, newData$V5 == "weekday")
 
 Take aggregate value for weekend and week day data.
 
-```{r}
+
+```r
 dailyactivity_weekend <- tapply(new_weekend$steps, new_weekend$interval, mean)
 dailyactivity_weekday <- tapply(new_weekday$steps, new_weekday$interval, mean)
 
@@ -207,7 +309,8 @@ dailyactivity_weekday <- tapply(new_weekday$steps, new_weekday$interval, mean)
 
 Create plot to display the activities.
 
-```{r}
+
+```r
 par(mfrow = c(2, 1))
 
 plot(names(dailyactivity_weekday), 
@@ -228,6 +331,8 @@ plot(names(dailyactivity_weekend),
      ylim =c(0, 250)
      ) 
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-24-1.png)
 
 
 From above two graphs, it is clear that the distribution throughout the day is quite different.  
